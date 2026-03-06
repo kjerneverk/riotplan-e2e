@@ -7,7 +7,10 @@ export default defineConfig({
         extends: true,
         test: {
           name: 'local-http',
-          include: ['tests/scenarios/**/*.test.ts'],
+          include: [
+            'tests/scenarios/**/*.test.ts',
+            'tests/regressions/**/*.test.ts',
+          ],
           globalSetup: ['tests/setup/http-global.ts'],
           environment: 'node',
           env: { TRANSPORT: 'http' },
@@ -18,7 +21,10 @@ export default defineConfig({
         extends: true,
         test: {
           name: 'stdio',
-          include: ['tests/scenarios/**/*.test.ts'],
+          include: [
+            'tests/scenarios/**/*.test.ts',
+            'tests/regressions/**/*.test.ts',
+          ],
           globalSetup: ['tests/setup/stdio-global.ts'],
           environment: 'node',
           env: { TRANSPORT: 'stdio' },
