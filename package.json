@@ -13,7 +13,8 @@
     "test:protocol": "vitest run --project protocol",
     "test:ai": "vitest run --project ai",
     "test:all": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "precommit": "npm run typecheck"
   },
   "dependencies": {
     "@kjerneverk/riotplan": "file:../riotplan"
