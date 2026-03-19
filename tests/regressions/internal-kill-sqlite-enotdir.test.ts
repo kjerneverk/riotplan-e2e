@@ -60,23 +60,23 @@ describe('Regression: riotplan_idea kill on SQLite storage', () => {
     expect(killResult).toBeDefined();
   });
 
-  it('plan state is still readable after a failed kill attempt', async () => {
+  it('plan state is still readable after a kill attempt', async () => {
     const planId = uniquePlanCode('regr-kill-state');
     await callTool(ctx.client, 'riotplan_idea', {
       action: 'create', code: planId, description: 'Kill state test',
       ideaContent: 'Plan content for kill state test.',
     });
 
-    // Attempt kill (may fail with known bug)
+    // Attempt kill (may fail on older artifacts, or succeed on fixed builds)
     try {
       await callTool(ctx.client, 'riotplan_idea', { action: 'kill', planId, reason: 'State test.' });
     } catch {
-      // Expected on SQLite — the plan should still be readable
+      // Older artifacts may still fail; the plan should remain readable regardless.
     }
 
-    // Plan should still be accessible even if kill failed
+    // Plan should still be accessible whether kill failed or succeeded.
     const context = await callTool(ctx.client, 'riotplan_read_context', { planId }) as Record<string, unknown>;
     expect(context).toBeDefined();
-    expect(context.stage).toBe('idea');
+    expect(['idea', 'cancelled']).toContain(String(context.stage));
   });
 });
