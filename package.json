@@ -7,17 +7,19 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "test": "vitest run --coverage --project local-http --project stdio",
+    "test": "npm run test:core",
+    "test:core": "vitest run --coverage --project local-http",
+    "test:full": "vitest run --coverage --project local-http --project protocol",
     "test:http": "vitest run --project local-http",
     "test:stdio": "vitest run --project stdio",
     "test:protocol": "vitest run --project protocol",
     "test:ai": "vitest run --project ai",
     "test:all": "vitest run",
     "typecheck": "tsc --noEmit",
-    "precommit": "npm run typecheck"
+    "precommit": "npm run typecheck && npm run test:full"
   },
   "dependencies": {
-    "@kjerneverk/riotplan": "^1.0.25"
+    "@kjerneverk/riotplan": "^1.0.26-dev.20260319013720.8564449"
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "latest",
