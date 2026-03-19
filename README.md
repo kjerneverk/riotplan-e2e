@@ -14,7 +14,9 @@ Unit tests verify individual functions. These tests verify that *everything work
 - The `riotplan` project checked out at `../riotplan` (or set `RIOTPLAN_DIR`)
 - `npm` installed
 
-The `@kjerneverk/riotplan` dependency uses a `file:../riotplan` reference so tests always run against the local development build.
+The test runner can execute against:
+- the installed `@kjerneverk/riotplan` artifact (default), or
+- a local source build via `scripts/run-e2e.sh` (builds `../riotplan` first).
 
 ## Running Tests
 
@@ -22,8 +24,11 @@ The `@kjerneverk/riotplan` dependency uses a `file:../riotplan` reference so tes
 # Install dependencies
 npm install
 
-# Run core tests (HTTP + STDIO transports, scenarios + protocol)
+# Run core tests (fast path, local-http project)
 npm test
+
+# Run full gate tests (local-http + stdio + protocol)
+npm run test:full
 
 # Run HTTP transport only
 npm run test:http
@@ -48,7 +53,8 @@ npm run typecheck
 
 | Command | Transport | Tests Included | Approximate Duration |
 |---------|-----------|----------------|----------------------|
-| `npm test` | HTTP + STDIO | Scenarios + Protocol + Regressions | ~30s |
+| `npm test` | HTTP | Scenarios + Regressions (local-http) | ~15s |
+| `test:full` | HTTP | Scenarios + Regressions + Protocol | ~20-30s |
 | `test:http` | HTTP | Scenarios + Regressions | ~15s |
 | `test:stdio` | STDIO | Scenarios + Regressions | ~15s |
 | `test:protocol` | HTTP (raw fetch) | Wire-level smoke tests | <5s |
@@ -146,7 +152,12 @@ This script:
 3. Type-checks the test project
 4. Runs the core test suite
 
-Pass `--skip-build` to reuse the existing build, or `--all` to include the AI tier.
+Pass `--skip-build` to reuse the existing build.
+
+Use `--mode` to select test scope:
+- `--mode core` (default): local-http
+- `--mode full`: local-http + protocol
+- `--mode all`: everything including AI tier
 
 ## Behavioral Notes (Discovered During Test Development)
 
