@@ -27,5 +27,8 @@
     "@vitest/coverage-v8": "^4.1.0",
     "typescript": "latest",
     "vitest": "latest"
+  },
+  "publishConfig": {
+    "tag": "dev"
   }
 }
