@@ -17,7 +17,7 @@
     "precommit": "npm run typecheck"
   },
   "dependencies": {
-    "@kjerneverk/riotplan": "file:../riotplan"
+    "@kjerneverk/riotplan": "^1.0.25"
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "latest",
