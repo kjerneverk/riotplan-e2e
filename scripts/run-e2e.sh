@@ -4,7 +4,8 @@
 # Usage:
 #   ./scripts/run-e2e.sh                   # Build riotplan and run core tests
 #   ./scripts/run-e2e.sh --skip-build      # Skip riotplan build (use cached)
-#   ./scripts/run-e2e.sh --all             # Run all tests including AI tier
+#   ./scripts/run-e2e.sh --mode full       # Run local-http + protocol
+#   ./scripts/run-e2e.sh --mode all        # Run everything including AI tier
 #   RIOTPLAN_DIR=/path/to/riotplan ./scripts/run-e2e.sh
 #
 # Prerequisites:
@@ -19,21 +20,52 @@ E2E_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 RIOTPLAN_DIR="${RIOTPLAN_DIR:-${E2E_DIR}/../riotplan}"
 
 SKIP_BUILD=false
-RUN_ALL=false
+MODE="core"
 
-for arg in "$@"; do
-  case "$arg" in
-    --skip-build) SKIP_BUILD=true ;;
-    --all)        RUN_ALL=true ;;
-    *)            echo "Unknown argument: $arg" && exit 1 ;;
+while (($#)); do
+  case "$1" in
+    --skip-build)
+      SKIP_BUILD=true
+      shift
+      ;;
+    --all)
+      MODE="all" # backwards compatibility
+      shift
+      ;;
+    --mode=*)
+      MODE="${1#*=}"
+      shift
+      ;;
+    --mode)
+      shift
+      MODE="${1:-}"
+      if [ -z "${MODE}" ]; then
+        echo "Missing value for --mode"
+        exit 1
+      fi
+      shift
+      ;;
+    *)
+      echo "Unknown argument: $1"
+      exit 1
+      ;;
   esac
 done
+
+case "${MODE}" in
+  core|full|all) ;;
+  *)
+    echo "Invalid mode: ${MODE}"
+    echo "Valid modes: core, full, all"
+    exit 1
+    ;;
+esac
 
 echo "=== RiotPlan E2E Test Runner ==="
 echo "E2E project:   ${E2E_DIR}"
 echo "RiotPlan dir:  ${RIOTPLAN_DIR}"
 echo "Skip build:    ${SKIP_BUILD}"
-echo "Run all tests: ${RUN_ALL}"
+echo "Mode:          ${MODE}"
 echo ""
 
 # Verify riotplan directory exists
@@ -53,7 +85,7 @@ if [ "${SKIP_BUILD}" = false ]; then
   echo ""
 fi
 
-# Step 2: Install e2e dependencies (links to local riotplan via file: dependency)
+# Step 2: Install e2e dependencies
 echo "--- Installing e2e dependencies ---"
 cd "${E2E_DIR}"
 npm install --silent
@@ -66,12 +98,12 @@ echo "Type check passed."
 echo ""
 
 # Step 4: Run tests
-echo "--- Running core tests ---"
-if [ "${RUN_ALL}" = true ]; then
-  npm run test:all
-else
-  npm test
-fi
+echo "--- Running ${MODE} tests ---"
+case "${MODE}" in
+  core) npm run test:core ;;
+  full) npm run test:full ;;
+  all)  npm run test:all ;;
+esac
 
 echo ""
 echo "=== All tests passed ==="

@@ -1,6 +1,6 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { createServer } from 'node:net';
-import { createRequire } from 'node:module';
+import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cleanupTempDir } from './temp.js';
@@ -11,12 +11,33 @@ export interface ServerConfig {
   plansDir: string;
 }
 
-function resolveRiotplanHttpBinary(): string {
+interface LaunchCommand {
+  command: string;
+  args: string[];
+  cwd?: string;
+}
+
+function resolveRiotplanHttpLaunch(): LaunchCommand {
   // Resolve relative to this file's location: go up to project root, into node_modules
   const thisDir = dirname(fileURLToPath(import.meta.url));
   // thisDir is riotplan-e2e/src, so project root is one level up
   const projectRoot = join(thisDir, '..');
-  return join(projectRoot, 'node_modules', '@kjerneverk', 'riotplan', 'dist', 'mcp-server-http.js');
+  const localSourcePackageRoot = process.env.RIOTPLAN_E2E_HTTP_PACKAGE_ROOT
+    ?? join(projectRoot, '..', 'riotplan-mcp-http');
+  const localSourceEntrypoint = process.env.RIOTPLAN_E2E_HTTP_ENTRYPOINT
+    ?? join(localSourcePackageRoot, 'src', 'bin-http.ts');
+  const localCommand = join(projectRoot, 'node_modules', '.bin', 'riotplan-mcp-http');
+
+  if (existsSync(localCommand)) {
+    return { command: localCommand, args: [] };
+  }
+
+  if (existsSync(localSourceEntrypoint)) {
+    return { command: 'npx', args: ['-y', 'tsx', localSourceEntrypoint], cwd: localSourcePackageRoot };
+  }
+
+  const npmPackage = process.env.RIOTPLAN_E2E_NPM_PACKAGE ?? '@kjerneverk/riotplan@dev';
+  return { command: 'npx', args: ['-y', '-p', npmPackage, 'riotplan-mcp-http'] };
 }
 
 async function findFreePort(): Promise<number> {
@@ -56,10 +77,11 @@ export class ServerManager {
       this.port = await findFreePort();
     }
 
-    const binary = resolveRiotplanHttpBinary();
+    const launch = resolveRiotplanHttpLaunch();
 
-    this.process = spawn('node', [binary, '--port', String(this.port), '--plans-dir', this.plansDir], {
+    this.process = spawn(launch.command, [...launch.args, '--port', String(this.port), '--plans-dir', this.plansDir], {
       env: { ...process.env },
+      cwd: launch.cwd,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
@@ -78,7 +100,7 @@ export class ServerManager {
     await this.waitForReady();
   }
 
-  async waitForReady(timeoutMs = 10_000): Promise<void> {
+  async waitForReady(timeoutMs = 30_000): Promise<void> {
     const deadline = Date.now() + timeoutMs;
     const url = `${this.getServerUrl()}/health`;
 

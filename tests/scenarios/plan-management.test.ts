@@ -38,7 +38,7 @@ describe('Plan Management', () => {
       for (const plan of plans) {
         const p = plan as Record<string, unknown>;
         const stage = p.stage as string;
-        const knownStages = ['idea', 'shaping', 'built', 'executing', 'completed', 'pending', 'active'];
+        const knownStages = ['idea', 'shaping', 'built', 'executing', 'completed', 'cancelled', 'pending', 'active'];
         if (stage) {
           expect(knownStages).toContain(stage.toLowerCase());
         }
