@@ -21,10 +21,10 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@kjerneverk/riotplan-mcp-http": "^1.0.26-dev.0"
+    "@kjerneverk/riotplan-mcp-http": "^1.0.26"
   },
   "devDependencies": {
-    "@kjerneverk/agentic": "^1.0.8",
+    "@kjerneverk/agentic": "^1.0.9",
     "@modelcontextprotocol/sdk": "latest",
     "@types/node": "latest",
     "@vitest/coverage-v8": "^4.1.0",
