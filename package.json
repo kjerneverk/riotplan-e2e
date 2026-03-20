@@ -1,7 +1,7 @@
 {
   "name": "@kjerneverk/riotplan-e2e",
   "version": "1.0.1-dev.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "engines": {
     "node": ">=24.0.0"
