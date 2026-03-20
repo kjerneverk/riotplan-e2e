@@ -2,7 +2,7 @@
 
 End-to-end integration tests for [RiotPlan](https://github.com/kjerneverk/riotplan) — the AI-assisted plan lifecycle system.
 
-These tests exercise RiotPlan through its MCP interface to validate that the full system works correctly: plan creation, evidence management, lifecycle transitions, step execution, and the caller-side build protocol. They run against real, locally-built RiotPlan binaries.
+These tests exercise RiotPlan through its MCP interface to validate that the full system works correctly: plan creation, evidence management, lifecycle transitions, step execution, and the caller-side build protocol. They run against **`@kjerneverk/riotplan-mcp-http`** in this project’s `node_modules` (version pinned in `package.json`); **`@kjerneverk/riotplan`** is installed transitively. The HTTP server process is started from the **mcp-http** package (`riotplan-mcp-http` → `dist/bin-http.js`); **riotplan** is still used for bundled stdio paths when present.
 
 ## Why This Exists
 
@@ -11,12 +11,11 @@ Unit tests verify individual functions. These tests verify that *everything work
 ## Prerequisites
 
 - Node.js >= 24.0.0
-- The `riotplan` project checked out at `../riotplan` (or set `RIOTPLAN_DIR`)
-- `npm` installed
+- `npm install` in `riotplan-e2e` (must resolve `@kjerneverk/riotplan-mcp-http` and, transitively, `@kjerneverk/riotplan` under `node_modules`)
 
-The test runner can execute against:
-- the installed `@kjerneverk/riotplan` artifact (default), or
-- a local source build via `scripts/run-e2e.sh` (builds `../riotplan` first).
+There are **no sibling-repo path assumptions** in the test harness: the HTTP server is started with `node` plus an **absolute** path to the **`riotplan-mcp-http` CLI script** from `@kjerneverk/riotplan-mcp-http` (typically `dist/bin-http.js`), or — if that package is missing — the legacy `dist/mcp-server-http.js` inside `@kjerneverk/riotplan`. Override with an absolute path via `RIOTPLAN_E2E_HTTP_SCRIPT` (see below). For release gating, install the exact artifacts under test (registry versions or `npm pack` tarballs — use `scripts/run-e2e.sh` to pack both repos from a monorepo checkout).
+
+Optional **`scripts/run-e2e.sh`** (e.g. kodrdriv): builds **`riotplan`** then **`riotplan-mcp-http`** (`RIOTPLAN_DIR` / `RIOTPLAN_MCP_HTTP_DIR`), runs `npm pack` on each, then `npm install <mcp-tarball> <riotplan-tarball>` into this package so the suite exercises those builds without runtime `node_modules` links to source trees.
 
 ## Running Tests
 
@@ -56,10 +55,10 @@ npm run typecheck
 | `npm test` | HTTP | Scenarios + Regressions (local-http) | ~15s |
 | `test:full` | HTTP | Scenarios + Regressions + Protocol | ~20-30s |
 | `test:http` | HTTP | Scenarios + Regressions | ~15s |
-| `test:stdio` | STDIO | Scenarios + Regressions | ~15s |
+| `test:stdio` | STDIO | Scenarios + Regressions (only if stdio MCP is available — see below) | ~15s |
 | `test:protocol` | HTTP (raw fetch) | Wire-level smoke tests | <5s |
 | `test:ai` | HTTP | riotplan_build instruction validation | ~60s |
-| `test:all` | HTTP + STDIO | Everything | ~90s |
+| `test:all` | HTTP (+ STDIO when configured) | All Vitest projects | ~90s |
 
 ## Project Structure
 
@@ -68,6 +67,7 @@ riotplan-e2e/
 ├── src/
 │   ├── client.ts          # MCP client factory (HTTP + STDIO transports)
 │   ├── helpers.ts         # callTool(), listToolNames(), readResource()
+│   ├── riotplan-install.ts # Resolve HTTP CLI (@kjerneverk/riotplan-mcp-http) and riotplan root (stdio / legacy)
 │   ├── server.ts          # HTTP server process manager
 │   ├── temp.ts            # Temp directory utilities
 │   └── types.ts           # Shared types and McpToolError
@@ -113,7 +113,18 @@ riotplan-e2e/
 
 ## Configuration
 
-Tests read configuration from environment variables set by Vitest global setup:
+### Harness (optional overrides)
+
+| Variable | Description |
+|----------|-------------|
+| `RIOTPLAN_E2E_HTTP_SCRIPT` | Absolute path to the HTTP MCP server entry (default: `<installed @kjerneverk/riotplan-mcp-http>/dist/bin-http.js` from `bin`, else legacy `<installed @kjerneverk/riotplan>/dist/mcp-server-http.js`) |
+| `RIOTPLAN_E2E_STDIO_SCRIPT` | Absolute path to a Node script that speaks MCP over stdio (only for stdio tests) |
+
+The **HTTP** MCP server is published as **`@kjerneverk/riotplan-mcp-http`** (CLI name `riotplan-mcp-http`). **`@kjerneverk/riotplan`** does **not** ship `dist/mcp-server-stdio.js` in current lines. The **stdio** Vitest project is registered only when `RIOTPLAN_E2E_STDIO_SCRIPT` is set or that bundled file exists under the installed riotplan package. `npm run test:stdio` checks that first and exits with a clear message if stdio is not configured.
+
+Removed (no longer used): `RIOTPLAN_E2E_HTTP_PACKAGE_ROOT`, `RIOTPLAN_E2E_HTTP_ENTRYPOINT`, `RIOTPLAN_E2E_NPM_PACKAGE`. HTTP resolution walks `node_modules` for `@kjerneverk/riotplan-mcp-http` (and nested-under-riotplan layouts); it does not assume a sibling source checkout at runtime.
+
+### Per-run (global setup)
 
 | Variable | Set by | Description |
 |----------|--------|-------------|
@@ -147,10 +158,12 @@ The `scripts/run-e2e.sh` script is designed to be invoked as a step in the kodrd
 ```
 
 This script:
-1. Builds `riotplan` from source (`npm run build`)
-2. Installs e2e dependencies (picks up the new build via `file:` reference)
+1. Builds **`riotplan-mcp-http`** then **`riotplan`** from source (`npm run build` in each repo)
+2. Runs **`npm pack`** in each repo and **`npm install <mcp-tarball> <riotplan-tarball>`** in `riotplan-e2e` (tests use that installed tree, not `../riotplan` paths at runtime)
 3. Type-checks the test project
 4. Runs the core test suite
+
+Override **`RIOTPLAN_MCP_HTTP_DIR`** (default: `../riotplan-mcp-http` relative to this package) if your checkout layout differs.
 
 Pass `--skip-build` to reuse the existing build.
 
