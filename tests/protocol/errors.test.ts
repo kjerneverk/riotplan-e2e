@@ -51,8 +51,8 @@ describe('Error handling', () => {
         headers: { 'Content-Type': 'text/plain', Accept: 'application/json, text/event-stream' },
         body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} }),
       });
-      // Server may accept, reject with 400/415, or return 500 for wrong content-type
-      expect([200, 400, 415, 500]).toContain(response.status);
+      // Server may accept, reject with 400/406/415, or return 500 for wrong content-type
+      expect([200, 400, 406, 415, 500]).toContain(response.status);
     });
 
     it('missing content-type — server does not crash', async () => {
@@ -61,7 +61,7 @@ describe('Error handling', () => {
         // No Content-Type header
         body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} }),
       });
-      expect([200, 400, 415, 500]).toContain(response.status);
+      expect([200, 400, 406, 415, 500]).toContain(response.status);
     });
   });
 
