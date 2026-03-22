@@ -24,6 +24,7 @@
     "@kjerneverk/riotplan-mcp-http": "^1.0.26"
   },
   "devDependencies": {
+    "@kjerneverk/execution": "^1.0.8",
     "@kjerneverk/agentic": "^1.0.9",
     "@modelcontextprotocol/sdk": "latest",
     "@types/node": "latest",
