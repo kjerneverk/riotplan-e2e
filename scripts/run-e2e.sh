@@ -83,7 +83,7 @@ if [ ! -d "${RIOTPLAN_DIR}" ]; then
   exit 1
 fi
 
-# Step 1: Build packages (framework first; riotplan-mcp-http depends on @kjerneverk/riotplan)
+# Step 1: Build packages (framework first; riotplan-mcp-http depends on @planvokter/riotplan)
 if [ "${SKIP_BUILD}" = false ]; then
   echo "--- Building riotplan ---"
   cd "${RIOTPLAN_DIR}"

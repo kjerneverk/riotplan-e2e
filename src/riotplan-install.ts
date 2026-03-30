@@ -20,22 +20,22 @@ function assertAbsoluteEnv(name: string, value: string): string {
 }
 
 const RIOTPLAN_PACKAGE_MARKERS = [
-  join('node_modules', '@kjerneverk', 'riotplan', 'package.json'),
+  join('node_modules', '@planvokter', 'riotplan', 'package.json'),
   join(
     'node_modules',
-    '@kjerneverk',
+    '@planvokter',
     'riotplan-mcp-http',
     'node_modules',
-    '@kjerneverk',
+    '@planvokter',
     'riotplan',
     'package.json'
   ),
 ] as const;
 
 /**
- * Find `node_modules/@kjerneverk/riotplan` by walking up from a file (no `require.resolve` —
+ * Find `node_modules/@planvokter/riotplan` by walking up from a file (no `require.resolve` —
  * the published package is ESM-only and does not expose a resolvable CJS main).
- * Checks hoisted install and copy nested under `@kjerneverk/riotplan-mcp-http`.
+ * Checks hoisted install and copy nested under `@planvokter/riotplan-mcp-http`.
  */
 function findRiotplanPackageRootFromFile(startFile: string): string {
   let dir = dirname(resolve(startFile));
@@ -49,22 +49,22 @@ function findRiotplanPackageRootFromFile(startFile: string): string {
     const parent = dirname(dir);
     if (parent === dir) {
       throw new Error(
-        'Could not find @kjerneverk/riotplan under node_modules (walked up from riotplan-e2e). ' +
-          'Run npm install (riotplan is installed with @kjerneverk/riotplan-mcp-http) or set RIOTPLAN_E2E_HTTP_SCRIPT.'
+        'Could not find @planvokter/riotplan under node_modules (walked up from riotplan-e2e). ' +
+          'Run npm install (riotplan is installed with @planvokter/riotplan-mcp-http) or set RIOTPLAN_E2E_HTTP_SCRIPT.'
       );
     }
     dir = parent;
   }
 }
 
-/** Root of the installed `@kjerneverk/riotplan` package (realpath). */
+/** Root of the installed `@planvokter/riotplan` package (realpath). */
 export function getRiotplanPackageRoot(): string {
   return findRiotplanPackageRootFromFile(fileURLToPath(import.meta.url));
 }
 
 const MCP_HTTP_PACKAGE_MARKERS = [
-  join('node_modules', '@kjerneverk', 'riotplan-mcp-http', 'package.json'),
-  join('node_modules', '@kjerneverk', 'riotplan', 'node_modules', '@kjerneverk', 'riotplan-mcp-http', 'package.json'),
+  join('node_modules', '@planvokter', 'riotplan-mcp-http', 'package.json'),
+  join('node_modules', '@planvokter', 'riotplan', 'node_modules', '@planvokter', 'riotplan-mcp-http', 'package.json'),
 ] as const;
 
 function readMcpHttpBinEntry(packageRoot: string): string | null {
@@ -101,8 +101,8 @@ function tryResolveMcpHttpScriptFromWalk(startFile: string): string | null {
 }
 
 /**
- * Default HTTP MCP entry: prefer `@kjerneverk/riotplan-mcp-http`,
- * else legacy `dist/mcp-server-http.js` inside `@kjerneverk/riotplan`.
+ * Default HTTP MCP entry: prefer `@planvokter/riotplan-mcp-http`,
+ * else legacy `dist/mcp-server-http.js` inside `@planvokter/riotplan`.
  */
 export function resolveBundledHttpServerScript(): string {
   const start = fileURLToPath(import.meta.url);
@@ -115,7 +115,7 @@ export function resolveBundledHttpServerScript(): string {
     return toRealPath(legacy);
   }
   throw new Error(
-    'Could not resolve HTTP MCP server: install @kjerneverk/riotplan-mcp-http (or a riotplan build that ' +
+    'Could not resolve HTTP MCP server: install @planvokter/riotplan-mcp-http (or a riotplan build that ' +
       'still ships dist/mcp-server-http.js), or set RIOTPLAN_E2E_HTTP_SCRIPT to an absolute path.'
   );
 }
@@ -146,7 +146,7 @@ export function resolveStdioServerScriptForE2e(): string {
     return toRealPath(bundled);
   }
   throw new Error(
-    'Stdio MCP: @kjerneverk/riotplan has no dist/mcp-server-stdio.js in this version. ' +
+    'Stdio MCP: @planvokter/riotplan has no dist/mcp-server-stdio.js in this version. ' +
       'Set RIOTPLAN_E2E_STDIO_SCRIPT to an absolute path to a Node script that speaks MCP over stdio, ' +
       'or run HTTP-only tests (npm test / npm run test:http).'
   );

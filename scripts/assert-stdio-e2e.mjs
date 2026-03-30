@@ -8,13 +8,13 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const riotplanMarkers = [
-  join('node_modules', '@kjerneverk', 'riotplan', 'package.json'),
+  join('node_modules', '@planvokter', 'riotplan', 'package.json'),
   join(
     'node_modules',
-    '@kjerneverk',
+    '@planvokter',
     'riotplan-mcp-http',
     'node_modules',
-    '@kjerneverk',
+    '@planvokter',
     'riotplan',
     'package.json'
   ),
@@ -48,6 +48,6 @@ if (root && existsSync(join(root, 'dist', 'mcp-server-stdio.js'))) {
 
 console.error(
   'riotplan-e2e stdio: set RIOTPLAN_E2E_STDIO_SCRIPT to an absolute path to a stdio MCP server, ' +
-    'or install @kjerneverk/riotplan that ships dist/mcp-server-stdio.js.'
+    'or install @planvokter/riotplan that ships dist/mcp-server-stdio.js.'
 );
 process.exit(1);

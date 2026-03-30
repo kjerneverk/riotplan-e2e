@@ -1,8 +1,8 @@
 # riotplan-e2e
 
-End-to-end integration tests for [RiotPlan](https://github.com/kjerneverk/riotplan) — the AI-assisted plan lifecycle system.
+End-to-end integration tests for [RiotPlan](https://github.com/planvokter/riotplan) — the AI-assisted plan lifecycle system.
 
-These tests exercise RiotPlan through its MCP interface to validate that the full system works correctly: plan creation, evidence management, lifecycle transitions, step execution, and the caller-side build protocol. They run against **`@kjerneverk/riotplan-mcp-http`** in this project’s `node_modules` (version pinned in `package.json`); **`@kjerneverk/riotplan`** is installed transitively. The HTTP server process is started from the **mcp-http** package (`riotplan-mcp-http` → `dist/bin-http.js`); **riotplan** is still used for bundled stdio paths when present.
+These tests exercise RiotPlan through its MCP interface to validate that the full system works correctly: plan creation, evidence management, lifecycle transitions, step execution, and the caller-side build protocol. They run against **`@planvokter/riotplan-mcp-http`** in this project’s `node_modules` (version pinned in `package.json`); **`@planvokter/riotplan`** is installed transitively. The HTTP server process is started from the **mcp-http** package (`riotplan-mcp-http` → `dist/bin-http.js`); **riotplan** is still used for bundled stdio paths when present.
 
 ## Why This Exists
 
@@ -11,9 +11,9 @@ Unit tests verify individual functions. These tests verify that *everything work
 ## Prerequisites
 
 - Node.js >= 24.0.0
-- `npm install` in `riotplan-e2e` (must resolve `@kjerneverk/riotplan-mcp-http` and, transitively, `@kjerneverk/riotplan` under `node_modules`)
+- `npm install` in `riotplan-e2e` (must resolve `@planvokter/riotplan-mcp-http` and, transitively, `@planvokter/riotplan` under `node_modules`)
 
-There are **no sibling-repo path assumptions** in the test harness: the HTTP server is started with `node` plus an **absolute** path to the **`riotplan-mcp-http` CLI script** from `@kjerneverk/riotplan-mcp-http` (typically `dist/bin-http.js`), or — if that package is missing — the legacy `dist/mcp-server-http.js` inside `@kjerneverk/riotplan`. Override with an absolute path via `RIOTPLAN_E2E_HTTP_SCRIPT` (see below). For release gating, install the exact artifacts under test (registry versions or `npm pack` tarballs — use `scripts/run-e2e.sh` to pack both repos from a monorepo checkout).
+There are **no sibling-repo path assumptions** in the test harness: the HTTP server is started with `node` plus an **absolute** path to the **`riotplan-mcp-http` CLI script** from `@planvokter/riotplan-mcp-http` (typically `dist/bin-http.js`), or — if that package is missing — the legacy `dist/mcp-server-http.js` inside `@planvokter/riotplan`. Override with an absolute path via `RIOTPLAN_E2E_HTTP_SCRIPT` (see below). For release gating, install the exact artifacts under test (registry versions or `npm pack` tarballs — use `scripts/run-e2e.sh` to pack both repos from a monorepo checkout).
 
 Optional **`scripts/run-e2e.sh`** (e.g. kodrdriv): builds **`riotplan`** then **`riotplan-mcp-http`** (`RIOTPLAN_DIR` / `RIOTPLAN_MCP_HTTP_DIR`), runs `npm pack` on each, then `npm install <mcp-tarball> <riotplan-tarball>` into this package so the suite exercises those builds without runtime `node_modules` links to source trees.
 
@@ -67,7 +67,7 @@ riotplan-e2e/
 ├── src/
 │   ├── client.ts          # MCP client factory (HTTP + STDIO transports)
 │   ├── helpers.ts         # callTool(), listToolNames(), readResource()
-│   ├── riotplan-install.ts # Resolve HTTP CLI (@kjerneverk/riotplan-mcp-http) and riotplan root (stdio / legacy)
+│   ├── riotplan-install.ts # Resolve HTTP CLI (@planvokter/riotplan-mcp-http) and riotplan root (stdio / legacy)
 │   ├── server.ts          # HTTP server process manager
 │   ├── temp.ts            # Temp directory utilities
 │   └── types.ts           # Shared types and McpToolError
@@ -117,12 +117,12 @@ riotplan-e2e/
 
 | Variable | Description |
 |----------|-------------|
-| `RIOTPLAN_E2E_HTTP_SCRIPT` | Absolute path to the HTTP MCP server entry (default: `<installed @kjerneverk/riotplan-mcp-http>/dist/bin-http.js` from `bin`, else legacy `<installed @kjerneverk/riotplan>/dist/mcp-server-http.js`) |
+| `RIOTPLAN_E2E_HTTP_SCRIPT` | Absolute path to the HTTP MCP server entry (default: `<installed @planvokter/riotplan-mcp-http>/dist/bin-http.js` from `bin`, else legacy `<installed @planvokter/riotplan>/dist/mcp-server-http.js`) |
 | `RIOTPLAN_E2E_STDIO_SCRIPT` | Absolute path to a Node script that speaks MCP over stdio (only for stdio tests) |
 
-The **HTTP** MCP server is published as **`@kjerneverk/riotplan-mcp-http`** (CLI name `riotplan-mcp-http`). **`@kjerneverk/riotplan`** does **not** ship `dist/mcp-server-stdio.js` in current lines. The **stdio** Vitest project is registered only when `RIOTPLAN_E2E_STDIO_SCRIPT` is set or that bundled file exists under the installed riotplan package. `npm run test:stdio` checks that first and exits with a clear message if stdio is not configured.
+The **HTTP** MCP server is published as **`@planvokter/riotplan-mcp-http`** (CLI name `riotplan-mcp-http`). **`@planvokter/riotplan`** does **not** ship `dist/mcp-server-stdio.js` in current lines. The **stdio** Vitest project is registered only when `RIOTPLAN_E2E_STDIO_SCRIPT` is set or that bundled file exists under the installed riotplan package. `npm run test:stdio` checks that first and exits with a clear message if stdio is not configured.
 
-Removed (no longer used): `RIOTPLAN_E2E_HTTP_PACKAGE_ROOT`, `RIOTPLAN_E2E_HTTP_ENTRYPOINT`, `RIOTPLAN_E2E_NPM_PACKAGE`. HTTP resolution walks `node_modules` for `@kjerneverk/riotplan-mcp-http` (and nested-under-riotplan layouts); it does not assume a sibling source checkout at runtime.
+Removed (no longer used): `RIOTPLAN_E2E_HTTP_PACKAGE_ROOT`, `RIOTPLAN_E2E_HTTP_ENTRYPOINT`, `RIOTPLAN_E2E_NPM_PACKAGE`. HTTP resolution walks `node_modules` for `@planvokter/riotplan-mcp-http` (and nested-under-riotplan layouts); it does not assume a sibling source checkout at runtime.
 
 ### Per-run (global setup)
 
