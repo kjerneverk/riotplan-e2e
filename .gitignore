@@ -1,4 +1,10 @@
 output/
+!output/
+output/*
+!output/kodrdriv/
+output/kodrdriv/*
+!output/kodrdriv/RELEASE_NOTES.md
+!output/kodrdriv/RELEASE_TITLE.md
 node_modules/
 dist/
 coverage/
