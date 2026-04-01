@@ -1,4 +1,17 @@
 import { defineConfig } from 'vitest/config';
+import { isStdioE2eBundledOrConfigured } from './src/riotplan-install.js';
+
+const stdioProject = {
+  extends: true as const,
+  test: {
+    name: 'stdio',
+    include: ['tests/scenarios/**/*.test.ts', 'tests/regressions/**/*.test.ts'],
+    globalSetup: ['tests/setup/stdio-global.ts'],
+    environment: 'node' as const,
+    env: { TRANSPORT: 'stdio' },
+    testTimeout: 30_000,
+  },
+};
 
 export default defineConfig({
   test: {
@@ -22,20 +35,7 @@ export default defineConfig({
           testTimeout: 30_000,
         },
       },
-      {
-        extends: true,
-        test: {
-          name: 'stdio',
-          include: [
-            'tests/scenarios/**/*.test.ts',
-            'tests/regressions/**/*.test.ts',
-          ],
-          globalSetup: ['tests/setup/stdio-global.ts'],
-          environment: 'node',
-          env: { TRANSPORT: 'stdio' },
-          testTimeout: 30_000,
-        },
-      },
+      ...(isStdioE2eBundledOrConfigured() ? [stdioProject] : []),
       {
         extends: true,
         test: {

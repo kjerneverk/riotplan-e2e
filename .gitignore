@@ -4,4 +4,6 @@ dist/
 coverage/
 *.log
 .env
-.kodrdriv*
+package-lock.json
+.kodrdriv/*
+!.kodrdriv/config.yaml

@@ -1,6 +1,8 @@
+import { resolveStdioServerScriptForE2e } from '../../src/riotplan-install.js';
 import { createTempPlansDir, cleanupTempDir } from '../../src/temp.js';
 
 export async function setup() {
+  resolveStdioServerScriptForE2e();
   const plansDir = await createTempPlansDir('stdio');
   process.env.E2E_PLANS_DIR = plansDir;
 }

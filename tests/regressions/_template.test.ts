@@ -2,7 +2,7 @@
  * Regression test template.
  *
  * Issue: #TODO — Brief description of the issue
- * Reference: https://github.com/kjerneverk/riotplan/issues/TODO
+ * Reference: https://github.com/planvokter/riotplan/issues/TODO
  *
  * What was broken:
  *   Describe the exact behavior that was wrong and when it was introduced.

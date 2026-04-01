@@ -1,0 +1,22 @@
+name: Node.js Package (npm)
+
+on:
+  release:
+    types: [created]
+  push:
+    branches:
+      - working
+
+# Internal E2E package — not published to npmjs. Kept so branch/tooling expectations
+# for a workflow with this name still get a green, instant run.
+permissions:
+  contents: read
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Skip npm publish (by design)
+        run: |
+          echo "riotplan-e2e is not published to npmjs; this workflow is a deliberate no-op."

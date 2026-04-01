@@ -1,7 +1,7 @@
 {
-  "name": "@kjerneverk/riotplan-e2e",
-  "version": "1.0.1",
-  "private": true,
+  "name": "@planvokter/riotplan-e2e",
+  "version": "1.0.2-dev.0",
+  "private": false,
   "type": "module",
   "engines": {
     "node": ">=24.0.0"
@@ -12,7 +12,7 @@
     "test:core": "vitest run --coverage --project local-http",
     "test:full": "vitest run --coverage --project local-http --project protocol",
     "test:http": "vitest run --project local-http",
-    "test:stdio": "vitest run --project stdio",
+    "test:stdio": "node scripts/assert-stdio-e2e.mjs && vitest run --project stdio",
     "test:protocol": "vitest run --project protocol",
     "test:ai": "vitest run --project ai",
     "test:all": "vitest run",
@@ -21,9 +21,11 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@kjerneverk/riotplan": "^1.0.26-dev.20260319013720.8564449"
+    "@planvokter/riotplan-mcp-http": "^1.0.27"
   },
   "devDependencies": {
+    "@kjerneverk/execution": "^1.0.8",
+    "@kjerneverk/agentic": "^1.0.9",
     "@modelcontextprotocol/sdk": "latest",
     "@types/node": "latest",
     "@vitest/coverage-v8": "^4.1.0",
@@ -31,6 +33,7 @@
     "vitest": "latest"
   },
   "publishConfig": {
+    "access": "public",
     "tag": "dev"
   }
 }

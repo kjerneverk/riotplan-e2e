@@ -1,27 +1,17 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import type { ClientConfig } from './types.js';
+import { resolveStdioServerScriptForE2e } from './riotplan-install.js';
 
 interface LaunchCommand {
   command: string;
   args: string[];
 }
 
-function resolveRiotplanMcpLaunch(): LaunchCommand {
-  const thisDir = dirname(fileURLToPath(import.meta.url));
-  const projectRoot = join(thisDir, '..');
-  const localCommand = join(projectRoot, 'node_modules', '.bin', 'riotplan-mcp');
-
-  if (existsSync(localCommand)) {
-    return { command: localCommand, args: [] };
-  }
-
-  const npmPackage = process.env.RIOTPLAN_E2E_NPM_PACKAGE ?? '@kjerneverk/riotplan@dev';
-  return { command: 'npx', args: ['-y', '-p', npmPackage, 'riotplan-mcp'] };
+function resolveRiotplanMcpStdioLaunch(): LaunchCommand {
+  const script = resolveStdioServerScriptForE2e();
+  return { command: process.execPath, args: [script] };
 }
 
 export async function createMcpClient(config: ClientConfig): Promise<Client> {
@@ -32,7 +22,7 @@ export async function createMcpClient(config: ClientConfig): Promise<Client> {
     transport = new StreamableHTTPClientTransport(new URL(`${config.serverUrl}/mcp`));
   } else {
     if (!config.plansDir) throw new Error('plansDir required for STDIO transport');
-    const launch = resolveRiotplanMcpLaunch();
+    const launch = resolveRiotplanMcpStdioLaunch();
     transport = new StdioClientTransport({
       command: launch.command,
       args: launch.args,

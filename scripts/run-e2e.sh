@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# run-e2e.sh — Build riotplan locally and run the core e2e test suite.
+# run-e2e.sh — Build riotplan-mcp-http + riotplan locally and run the core e2e test suite.
 #
 # Usage:
-#   ./scripts/run-e2e.sh                   # Build riotplan and run core tests
-#   ./scripts/run-e2e.sh --skip-build      # Skip riotplan build (use cached)
+#   ./scripts/run-e2e.sh                   # Build both packages and run core tests
+#   ./scripts/run-e2e.sh --skip-build      # Skip builds (use existing dist/)
 #   ./scripts/run-e2e.sh --mode full       # Run local-http + protocol
 #   ./scripts/run-e2e.sh --mode all        # Run everything including AI tier
-#   RIOTPLAN_DIR=/path/to/riotplan ./scripts/run-e2e.sh
+#   RIOTPLAN_DIR=/path/to/riotplan RIOTPLAN_MCP_HTTP_DIR=/path/to/riotplan-mcp-http ./scripts/run-e2e.sh
 #
 # Prerequisites:
 #   - Node.js >= 24.0.0
-#   - riotplan project at ../riotplan (or RIOTPLAN_DIR)
+#   - riotplan-mcp-http repo path in RIOTPLAN_MCP_HTTP_DIR (default: ../riotplan-mcp-http from this package)
+#   - riotplan repo path in RIOTPLAN_DIR (default: ../riotplan)
 #   - npm installed
 
 set -euo pipefail
@@ -18,6 +19,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 E2E_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 RIOTPLAN_DIR="${RIOTPLAN_DIR:-${E2E_DIR}/../riotplan}"
+RIOTPLAN_MCP_HTTP_DIR="${RIOTPLAN_MCP_HTTP_DIR:-${E2E_DIR}/../riotplan-mcp-http}"
 
 SKIP_BUILD=false
 MODE="core"
@@ -62,20 +64,26 @@ case "${MODE}" in
 esac
 
 echo "=== RiotPlan E2E Test Runner ==="
-echo "E2E project:   ${E2E_DIR}"
-echo "RiotPlan dir:  ${RIOTPLAN_DIR}"
-echo "Skip build:    ${SKIP_BUILD}"
-echo "Mode:          ${MODE}"
+echo "E2E project:           ${E2E_DIR}"
+echo "riotplan-mcp-http dir: ${RIOTPLAN_MCP_HTTP_DIR}"
+echo "RiotPlan dir:          ${RIOTPLAN_DIR}"
+echo "Skip build:            ${SKIP_BUILD}"
+echo "Mode:                  ${MODE}"
 echo ""
 
-# Verify riotplan directory exists
+if [ ! -d "${RIOTPLAN_MCP_HTTP_DIR}" ]; then
+  echo "ERROR: riotplan-mcp-http directory not found: ${RIOTPLAN_MCP_HTTP_DIR}"
+  echo "Set RIOTPLAN_MCP_HTTP_DIR to the HTTP MCP package (acyclic split; HTTP CLI lives there)."
+  exit 1
+fi
+
 if [ ! -d "${RIOTPLAN_DIR}" ]; then
   echo "ERROR: RiotPlan directory not found: ${RIOTPLAN_DIR}"
   echo "Set RIOTPLAN_DIR to the path of the riotplan project."
   exit 1
 fi
 
-# Step 1: Build riotplan
+# Step 1: Build packages (framework first; riotplan-mcp-http depends on @planvokter/riotplan)
 if [ "${SKIP_BUILD}" = false ]; then
   echo "--- Building riotplan ---"
   cd "${RIOTPLAN_DIR}"
@@ -83,12 +91,35 @@ if [ "${SKIP_BUILD}" = false ]; then
   npm run build
   echo "riotplan build complete."
   echo ""
+
+  echo "--- Building riotplan-mcp-http ---"
+  cd "${RIOTPLAN_MCP_HTTP_DIR}"
+  npm install --silent
+  npm run build
+  echo "riotplan-mcp-http build complete."
+  echo ""
 fi
 
-# Step 2: Install e2e dependencies
-echo "--- Installing e2e dependencies ---"
+# Step 2: Pack both and install tarballs into e2e (no runtime sibling path assumptions)
+echo "--- Packing and installing riotplan-mcp-http + riotplan into e2e ---"
+cd "${RIOTPLAN_MCP_HTTP_DIR}"
+MCP_PACKFILE="$(npm pack --silent | tail -1)"
+if [ -z "${MCP_PACKFILE}" ]; then
+  echo "ERROR: npm pack in ${RIOTPLAN_MCP_HTTP_DIR} produced no tarball name"
+  exit 1
+fi
+MCP_PACK_PATH="${RIOTPLAN_MCP_HTTP_DIR}/${MCP_PACKFILE}"
+
+cd "${RIOTPLAN_DIR}"
+PACKFILE="$(npm pack --silent | tail -1)"
+if [ -z "${PACKFILE}" ]; then
+  echo "ERROR: npm pack in ${RIOTPLAN_DIR} produced no tarball name"
+  exit 1
+fi
+PACK_PATH="${RIOTPLAN_DIR}/${PACKFILE}"
+
 cd "${E2E_DIR}"
-npm install --silent
+npm install --silent "${MCP_PACK_PATH}" "${PACK_PATH}"
 echo ""
 
 # Step 3: Type-check
