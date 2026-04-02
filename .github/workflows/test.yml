@@ -25,13 +25,43 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: planvokter/riotplan
+          path: riotplan
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Build riotplan monorepo
+        run: |
+          set -e
+          cd riotplan
+          npm ci
+          npm run build
       - name: Install dependencies
         run: |
+          set -euo pipefail
           npm config set registry https://registry.npmjs.org/
           rm -rf node_modules package-lock.json
+
+          PACKDIR="${RUNNER_TEMP}/riotplan-packs"
+          mkdir -p "$PACKDIR"
+          (
+            cd riotplan
+            for w in \
+              packages/riotplan-verify \
+              packages/riotplan-format \
+              packages/riotplan-catalyst \
+              packages/riotplan-cloud \
+              packages/riotplan-templates \
+              packages/riotplan-core \
+              packages/riotplan-ai \
+              packages/riotplan \
+              packages/riotplan-mcp-http
+            do
+              npm pack -w "$w" --pack-destination "$PACKDIR"
+            done
+          )
 
           MAX_ATTEMPTS=5
           ATTEMPT=1
@@ -41,7 +71,7 @@ jobs:
             echo "npm install attempt $ATTEMPT of $MAX_ATTEMPTS..."
             if npm install --force; then
               echo "✓ npm install succeeded"
-              exit 0
+              break
             fi
 
             if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
@@ -52,8 +82,13 @@ jobs:
             ATTEMPT=$((ATTEMPT + 1))
           done
 
-          echo "✗ npm install failed after $MAX_ATTEMPTS attempts"
-          exit 1
+          if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
+            echo "✗ npm install failed after $MAX_ATTEMPTS attempts"
+            exit 1
+          fi
+
+          echo "Overlay built riotplan packages from tarballs (no file: in package.json)..."
+          npm install --no-save "$PACKDIR"/*.tgz
         timeout-minutes: 15
       - run: npm run build
       - run: npm run test

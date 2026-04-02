@@ -1,1 +1,1 @@
-chore(release): publish @planvokter/riotplan-e2e
+1.0.3: Align evidence E2E scenario with explicit stage transitions; package metadata/script cleanup

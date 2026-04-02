@@ -129,7 +129,7 @@ describe('Evidence CRUD', () => {
   });
 
   it('verifies evidence survives stage transition to shaping', async () => {
-    await callTool(ctx.client, 'riotplan_shaping', { action: 'start', planId });
+    await callTool(ctx.client, 'riotplan_transition', { planId, stage: 'shaping', reason: 'e2e test: evidence survival' });
 
     const context = await callTool(ctx.client, 'riotplan_read_context', { planId }) as Record<string, unknown>;
     const evidence = context.evidence as Record<string, unknown>;
