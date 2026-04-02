@@ -21,7 +21,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@planvokter/riotplan-mcp-http": "^1.1.2"
+    "@planvokter/riotplan-mcp-http": "^1.1.3"
   },
   "devDependencies": {
     "@kjerneverk/execution": "^1.0.8",
