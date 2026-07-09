@@ -2,6 +2,7 @@
   "name": "@planvokter/riotplan-e2e",
   "version": "1.0.5-dev.0",
   "private": false,
+  "license": "Apache-2.0",
   "type": "module",
   "engines": {
     "node": ">=24.0.0"
