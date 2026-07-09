@@ -180,3 +180,7 @@ Use `--mode` to select test scope:
 - `riotplan_list_plans` returns a paginated result — do not assume a newly-created plan appears in the first page when many plans exist.
 - Project entities in `riotplan_context` require `classification.context_type` and `routing.structure` fields (from `@redaksjon/context` schema), which are not documented in the MCP tool schema.
 - `add_narrative` uses the `content` parameter, not `narrative`.
+
+## License
+
+Apache-2.0
